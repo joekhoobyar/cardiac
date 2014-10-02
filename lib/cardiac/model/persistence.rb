@@ -70,10 +70,8 @@ module Cardiac
       # Reloads the attributes of this object from the remote.
       # Any (optional) arguments are passed to find when reloading.
       def reload(*args)
-        #IdentityMap.without do
-          fresh_object = self.class.find(self.id, *args)
-          @attributes.update(fresh_object.instance_variable_get('@attributes'))
-        #end
+        fresh_object = self.class.find(self.id, *args)
+        @attributes.update(fresh_object.instance_variable_get('@attributes'))
         self
       end
       
