@@ -3,6 +3,7 @@ require 'active_support/rescuable'
 require 'active_support/callbacks'
 require 'rack'
 require 'rack/client'
+require 'rack/cache'
 require 'stringio'
 
 module Cardiac
@@ -43,7 +44,35 @@ module Cardiac
       response
     end
     
-    class DEFAULT_CLIENT < Rack::Client::Simple
+    class Client < Rack::Client::Simple
+      class SwitchHeaders
+        def initialize(app,match,switch)
+          @app, @match, @switch = app, match, switch
+        end
+        def call(env)
+          status, headers, body = @app.call(env)
+          [status, Hash[ headers.to_a.map{|k,v| [@match===k ? @switch+$' : k, v] }], body]
+        end
+      end
+
+      use SwitchHeaders, /^X-HideRack-/, 'X-Rack-'
+      use SwitchHeaders, /^X-Rack-/, 'X-Rack-Client-'
+      use Rack::Cache,
+        'rack-cache.ignore_headers' => ['Set-Cookie','X-Content-Digest']
+      use Rack::Head
+      use Rack::ConditionalGet
+      use Rack::ETag
+      use SwitchHeaders, /^X-Rack-/, 'X-HideRack-'
+      
+      def self.new
+        super Rack::Client::Handler::NetHTTP
+      end
+      
+      def self.request(*args)
+        @instance ||= new
+        @instance.request(*args)
+      end
+      
       def http_user_agent
         "cardiac #{Cardiac::VERSION} (rack-client #{Rack::Client::VERSION})"
       end
@@ -151,20 +180,8 @@ module Cardiac
     
   private
   
-    def self.build_client
-      @client ||= DEFAULT_CLIENT.new(Rack::Builder.app do
-          use Rack::Client::Cache
-          use Rack::Head
-          use Rack::ConditionalGet
-          use Rack::ETag
-        
-          # This is the Rack "backend" that actually performs the communications.
-          run Rack::Client::Handler::NetHTTP
-        end)
-    end
-    
     def perform_request
-      self.class.build_client.request @verb.to_s.upcase, @url.to_s, @headers.try(:stringify_keys) || {}, @payload
+      Client.request @verb.to_s.upcase, @url.to_s, @headers.try(:stringify_keys) || {}, @payload
     end
   
     # Handles RequestFailedError exceptions, optionally unwrapping them.

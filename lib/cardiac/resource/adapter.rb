@@ -114,10 +114,12 @@ module Cardiac
     end
     
     def execute!
-      instrumenter.instrument "operation.cardiac", event_attributes do
+      event = event_attributes 
+      instrumenter.instrument "operation.cardiac", event do
         run_callbacks :execute do
           handler = __handler__.new(__client_options__, payload, &__client_handler__)
           self.result = handler.transmit!
+          event[:response_headers] = result.response.headers if result && result.response
           completed?
         end
       end
