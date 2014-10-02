@@ -1,0 +1,7 @@
+en:
+
+  # Cardiac models configuration
+  cardiac_model:
+    errors:
+      messages:
+        record_invalid: "Validation failed: %{errors}%{remote_errors}"

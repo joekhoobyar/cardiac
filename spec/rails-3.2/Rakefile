@@ -1,0 +1,10 @@
+require 'rake'
+require 'rspec/core/rake_task'
+
+desc 'Default: Run all specs for rails 3.2'
+task :default => :spec
+
+desc 'Run all specs for rails 3.2'
+RSpec::Core::RakeTask.new(:spec) do |t|
+  t.pattern = defined?(SPEC) ? SPEC : ['**/*_spec.rb', '../shared/**/*_spec.rb']
+end
