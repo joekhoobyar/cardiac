@@ -13,11 +13,13 @@ module Cardiac
       return unless logger.debug?
 
       payload = event.payload
-
-      name  = "#{payload[:name]} #{payload[:verb]} (#{event.duration.round(1)}ms)"
+      
       url   = payload[:url]
+      stats = "#{event.duration.round(1)}ms"
+      stats = "CACHED #{stats}" if /fresh/ === payload[:response_headers].try(:[],'X-Rack-Client-Cache')
+      name  = "#{payload[:name]} #{payload[:verb]} (#{stats})"
 
-      if extra = payload.except(:name, :verb, :url).presence
+      if extra = payload.except(:name, :verb, :url, :response_headers).presence
         extra = "  " + extra.map{|key,value|
                    key = key.to_s.underscore.upcase
                    "#{key}: #{key=='PAYLOAD' ? value : value.inspect}"

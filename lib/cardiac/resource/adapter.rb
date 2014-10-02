@@ -8,6 +8,7 @@ module Cardiac
   # An adapter for performing operations on a resource.
   class ResourceAdapter
     include ::ActiveSupport::Callbacks
+    include ::Cardiac::Representation::LookupMethods
     
     define_callbacks :resolve, :prepare, :encode, :execute, :decode
     
@@ -33,7 +34,25 @@ module Cardiac
     
     def __client_options__
       if resolved?
-        @__client_options__ ||= resource.send(:build_client_options)
+        @__client_options__ ||= resource.send(:build_client_options).tap do |h|
+          h = (h[:headers] ||= {})
+            
+          # Content-Type
+          if content_type = h.delete(:content_type).presence
+            content_type = mimes_for(content_type).first
+          else
+            content_type = encoder_reflection.base_reflection.default_type
+          end
+          h['content_type'] = content_type.try(:content_type) || 'application/x-www-form-urlencoded'
+              
+          # Accept
+          if accept = h.delete(:accepts).presence and Array===accept
+            accept = accept.map{|ext| mimes_for(ext.to_s.strip).first }
+          else
+            accept = decoder_reflections.map{|dr| dr.base_reflection.default_type }.compact
+          end
+          h['accept'] = accept.empty? ? '*/*; q=0.5, application/json' : accept.join('; ')
+        end
       end
     end
     
@@ -68,7 +87,7 @@ module Cardiac
   
     def prepare! verb=nil
       run_callbacks :prepare do
-        verb ? resource.http_method(verb) : resource
+        self.resource = resource.http_method(verb) if verb
       end
       __client_options__.symbolize_keys!
       prepared?
@@ -95,10 +114,12 @@ module Cardiac
     end
     
     def execute!
-      instrumenter.instrument "operation.cardiac", event_attributes do
+      event = event_attributes 
+      instrumenter.instrument "operation.cardiac", event do
         run_callbacks :execute do
           handler = __handler__.new(__client_options__, payload, &__client_handler__)
           self.result = handler.transmit!
+          event[:response_headers] = result.response.headers if result && result.response
           completed?
         end
       end
