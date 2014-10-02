@@ -44,22 +44,6 @@ module Cardiac
     end
     
     class DEFAULT_CLIENT < Rack::Client::Simple
-      
-      # TODO: Move these conversions elsewhere.
-      def build_env(request_method, url, headers = {}, body = nil)
-        # Content-Type
-        if content_type = headers['content_type'].presence
-          headers['content_type'] = MIME::Types.type_for_extension content_type
-        end
-        # Accept
-        if accept = headers.delete('accepts').presence
-          accept = Array===accept ? accept : accept.to_s.split(',')
-          headers['accept'] = accept.map{|ext| MIME::Types.type_for_extension(ext.to_s.strip) }.join(', ')
-        end
-        
-        env = super
-      end
-      
       def http_user_agent
         "cardiac #{Cardiac::VERSION} (rack-client #{Rack::Client::VERSION})"
       end
