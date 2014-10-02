@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Joe Khoobyar"]
   s.email       = ["joe@khoobyar.name"]
   s.homepage    = "http://github.com/cardiac/cardiac"
+  s.license     = 'MIT'
   s.summary     = %q{ Cardiac: a REST modeling framework for Ruby }
   s.description = %q{
     This gem provides a thin facade around REST-ful resources, aiming to be closer to ActiveRecord than ActiveResource.
