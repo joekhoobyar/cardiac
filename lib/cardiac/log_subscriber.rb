@@ -12,12 +12,12 @@ module Cardiac
     def operation(event)
       return unless logger.debug?
 
-      payload = event.payload
-      
-      url   = payload[:url]
+      payload   = event.payload
+      name, url = payload[:name], payload[:url]
+        
       stats = "#{event.duration.round(1)}ms"
-      stats = "CACHED #{stats}" if /fresh/ === payload[:response_headers].try(:[],'X-Rack-Client-Cache')
-      name  = "#{payload[:name]} #{payload[:verb]} (#{stats})"
+      stats = "CACHED #{stats}" if name!='CACHE' && /fresh/ === payload[:response_headers].try(:[],'X-Rack-Client-Cache')
+      name  = "#{name} #{payload[:verb]} (#{stats})"
 
       if extra = payload.except(:name, :verb, :url, :response_headers).presence
         extra = "  " + extra.map{|key,value|
