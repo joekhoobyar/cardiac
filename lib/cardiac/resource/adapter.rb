@@ -126,7 +126,7 @@ module Cardiac
           
         instrumenter.instrument "operation.cardiac", event=event_attributes do
           if resource_cache_enabled? http_verb
-            self.result = cache_request(*__client_options__.slice(:url, :headers)) { transmit! }
+            self.result = cache_resource(*__client_options__.slice(:url, :headers)) { transmit! }
           else
             self.result = transmit!
           end
