@@ -37,6 +37,18 @@ module Cardiac
       super(rel).options(options)
     end
     
+    # Checking if the configured HTTP verb should be considered idempotent.
+    # @see http://restcookbook.com/HTTP%20Methods/idempotency/
+    def request_is_idemptotent?
+      case method_value when :get, :head, :options, :put, :delete then true end
+    end
+    
+    # Checking if the configured HTTP verb should be considered safe.
+    # @see http://restcookbook.com/HTTP%20Methods/idempotency/
+    def request_is_safe?
+      case method_value when :get, :head, :options then true end
+    end
+    
     # Checking if the configured HTTP verb has requests that support a body.
     def request_has_body?
       net_http_request_klass::REQUEST_HAS_BODY

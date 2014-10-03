@@ -117,4 +117,25 @@ module Cardiac
     end
   end
   
+  begin
+    # AS 4.0+
+    require 'active_support/per_thread_registry'
+    PerThreadRegistry = ::ActiveSupport::PerThreadRegistry
+  rescue LoadError
+    # AS 3.2
+    module PerThreadRegistry
+    protected
+      def method_missing(name, *args, &block)
+        define_singleton_method(name) do |*a, &b|
+          per_thread_registry_instance.public_send(name, *a, &b)
+        end
+        send(name, *args, &block)
+      end
+    private
+      def per_thread_registry_instance
+        Thread.current[name] ||= new
+      end
+    end
+  end
+ 
 end

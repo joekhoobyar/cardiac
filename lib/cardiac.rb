@@ -21,14 +21,15 @@ module Cardiac
   # Resources and builder DSL.
   autoload :Resource
   autoload_under 'resource' do
+    autoload :CodecMethods
+    autoload :ConfigMethods
+    autoload :ExtensionMethods
+    autoload :RequestMethods
+    autoload :ResourceAdapter, 'cardiac/resource/adapter'
+    autoload :ResourceBuilder, 'cardiac/resource/builder'
+    autoload :ResourceCache, 'cardiac/resource/cache'
     autoload :Subresource
     autoload :UriMethods
-    autoload :RequestMethods
-    autoload :CodecMethods
-    autoload :ExtensionMethods
-    autoload :ConfigMethods
-    autoload :ResourceBuilder, 'cardiac/resource/builder'
-    autoload :ResourceAdapter, 'cardiac/resource/adapter'
   end
   autoload :Representation
   autoload_at 'cardiac/declarations' do
@@ -38,6 +39,7 @@ module Cardiac
   end
   
   # Operations and execution.
+  autoload :Client
   autoload :OperationHandler
   autoload :OperationResult, 'cardiac/operation_handler'
   autoload :OperationBuilder

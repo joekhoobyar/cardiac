@@ -8,13 +8,14 @@ module Cardiac
   # An adapter for performing operations on a resource.
   class ResourceAdapter
     include ::ActiveSupport::Callbacks
-    include ::Cardiac::Representation::LookupMethods
+    include Representation::LookupMethods
+    include ResourceCache::InstanceMethods
     
     define_callbacks :resolve, :prepare, :encode, :execute, :decode
     
     attr_accessor :klass, :resource, :payload, :result
     
-    delegate :request_has_body?, :response_has_body?, to: :resource
+    delegate :request_has_body?, :response_has_body?, :request_is_safe?, :request_is_idempotent?, to: :resource
     delegate :encoder_reflection, :decoder_reflections, to: '@reflection'
     delegate :transmitted?, :aborted?, :completed?, :response, to: :result, allow_nil: true
 
@@ -24,12 +25,9 @@ module Cardiac
     delegate :logger, to: '::Cardiac::Model::Base'
     
     def initialize(klass,base,payload=nil)
-      @klass = klass
-      @reflection = base.to_reflection if base.respond_to?(:to_reflection)
-      run_callbacks :resolve do
-        @resource = base.to_resource if base.respond_to?(:to_resource)
-      end
-      @reflection ||= @resource.to_reflection if resolved?
+      @klass               = klass
+      @reflection          = base.to_reflection if base.respond_to? :to_reflection
+      resolve! base
     end
     
     def __client_options__
@@ -58,9 +56,7 @@ module Cardiac
     
     # Convenience method to return the current HTTP verb
     def http_verb
-      if defined? @__client_options__
-        @__client_options__[:method].to_s.upcase
-      end
+      @http_verb ||= (defined? @__client_options__ and @__client_options__[:method].to_s.upcase)
     end
     
     # Performs a remote call by performing the remaining phases in the lifecycle of this adapter.
@@ -80,15 +76,26 @@ module Cardiac
     end
     
     def prepared?
-      __client_options__.present?
+      @__client_options__.present?
     end
     
   protected
   
+    def resolve! base
+      run_callbacks :resolve do
+        @resource = base.to_resource if base.respond_to?(:to_resource)
+      end
+      @reflection ||= @resource.to_reflection if resolved?
+    end
+  
     def prepare! verb=nil
       run_callbacks :prepare do
-        self.resource = resource.http_method(verb) if verb
+        if verb
+          self.resource = resource.http_method(verb)
+          @__client_options__ = nil
+        end
       end
+      
       __client_options__.symbolize_keys!
       prepared?
     end
@@ -114,14 +121,20 @@ module Cardiac
     end
     
     def execute!
-      event = event_attributes 
-      instrumenter.instrument "operation.cardiac", event do
-        run_callbacks :execute do
-          handler = __handler__.new(__client_options__, payload, &__client_handler__)
-          self.result = handler.transmit!
+      run_callbacks :execute do
+        clear_resource_cache unless request_is_safe?
+          
+        instrumenter.instrument "operation.cardiac", event=event_attributes do
+          if resource_cache_enabled? http_verb
+            url, headers = __client_options__.slice(:url, :headers)
+            self.result = cache_resource(url.to_s, headers, event) { transmit! }
+          else
+            self.result = transmit!
+          end
           event[:response_headers] = result.response.headers if result && result.response
-          completed?
         end
+            
+        completed?
       end
     rescue => e
       message = "#{e.class.name}: #{e.message}: #{resource.to_url}"
@@ -147,12 +160,16 @@ module Cardiac
 
   private
   
+    def transmit!
+      __handler__.new(__client_options__, payload, &__client_handler__).transmit!
+    end
+   
     def model_name
       __klass_get(:model_name).try(:to_s)
     end
     
-    def event_attributes
-      h = { name: model_name, verb: http_verb, url: resource.to_url, payload: payload }
+    def event_attributes(name=model_name)
+      h = { name: name, verb: http_verb, url: resource.to_url, payload: payload }
       ctx = __klass_get :operation_context
       ctx = { context: ctx } unless ctx.present? && Hash===ctx
       h.reverse_merge! ctx if ctx

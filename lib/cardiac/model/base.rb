@@ -4,6 +4,8 @@ require 'active_attr'
 module Cardiac
   module Model
     class Base
+      extend Cardiac::ResourceCache::ClassMethods
+      
       include ActiveAttr::Model
       include Cardiac::Model::Attributes
       include Cardiac::Model::Querying
@@ -155,7 +157,7 @@ module Cardiac
       end
     end
     
-    ActiveSupport.run_load_hooks(:cardiac, Base)
+    ActiveSupport.run_load_hooks(:cardiac_model, Base)
   end
 
 end
