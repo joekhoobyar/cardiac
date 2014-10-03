@@ -38,6 +38,7 @@ module Cardiac
   end
   
   # Operations and execution.
+  autoload :Client
   autoload :OperationHandler
   autoload :OperationResult, 'cardiac/operation_handler'
   autoload :OperationBuilder

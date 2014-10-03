@@ -1,10 +1,6 @@
 require 'active_support/configurable'
 require 'active_support/rescuable'
 require 'active_support/callbacks'
-require 'rack'
-require 'rack/client'
-require 'rack/cache'
-require 'stringio'
 
 module Cardiac
   
@@ -42,40 +38,6 @@ module Cardiac
     DEFAULT_RESPONSE_HANDLER = Proc.new do |response|
       raise RequestFailedError, response unless response.successful?
       response
-    end
-    
-    class Client < Rack::Client::Simple
-      class SwitchHeaders
-        def initialize(app,match,switch)
-          @app, @match, @switch = app, match, switch
-        end
-        def call(env)
-          status, headers, body = @app.call(env)
-          [status, Hash[ headers.to_a.map{|k,v| [@match===k ? @switch+$' : k, v] }], body]
-        end
-      end
-
-      use SwitchHeaders, /^X-HideRack-/, 'X-Rack-'
-      use SwitchHeaders, /^X-Rack-/, 'X-Rack-Client-'
-      use Rack::Cache,
-        'rack-cache.ignore_headers' => ['Set-Cookie','X-Content-Digest']
-      use Rack::Head
-      use Rack::ConditionalGet
-      use Rack::ETag
-      use SwitchHeaders, /^X-Rack-/, 'X-HideRack-'
-      
-      def self.new
-        super Rack::Client::Handler::NetHTTP
-      end
-      
-      def self.request(*args)
-        @instance ||= new
-        @instance.request(*args)
-      end
-      
-      def http_user_agent
-        "cardiac #{Cardiac::VERSION} (rack-client #{Rack::Client::VERSION})"
-      end
     end
     
     attr_accessor :verb, :url, :headers, :payload, :options, :response_handler, :result
@@ -204,12 +166,7 @@ module Cardiac
     # Optionally, these conditions could also be made to provide a mock response on a connection error.
     # This would prevent the operation from aborting but still show that the response was not transmitted.
     def service_unavailable e
-      self.result = build_mock_response e, '503' if mock_response_on_connection_error
-    end
-  
-    # Internal method.
-    def build_mock_response body, code, version='1.0', headers={}
-      Rack::Client::Simple::CollapsedResponse.new code, headers, StringIO.new(body)
+      self.result = Client.build_mock_response e, '503' if mock_response_on_connection_error
     end
   end
 end

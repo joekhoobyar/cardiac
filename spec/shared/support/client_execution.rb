@@ -10,7 +10,7 @@ shared_context 'Client responses' do
   
   let!(:response_builder) { Proc.new{|mock,*args|
     mock = send(:"mock_#{mock}") if Symbol===mock
-    Rack::Client::Simple::CollapsedResponse.new(mock.code, mock.headers, StringIO.new(mock.body))
+    Cardiac::Client.build_mock_response(*mock.to_a)
   } } 
   
   let!(:response_handler) { Proc.new{|mock,args|
