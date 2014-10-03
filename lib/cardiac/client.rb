@@ -8,6 +8,21 @@ module Cardiac
   class Client < Rack::Client::Simple
     
     # :nodoc:
+    class ErrorLogger
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        @app.call(env)
+      ensure
+        if message = env['rack.errors'].to_s.presence
+          Cardiac::Model::Base.logger.error message
+        end
+      end
+    end
+    
+    # :nodoc:
     class SwitchHeaders
       def initialize(app,match,switch)
         @app, @match, @switch = app, match, switch
@@ -18,22 +33,14 @@ module Cardiac
         [status, Hash[ headers.to_a.map{|k,v| [@match===k ? @switch+$' : k, v] }], body]
       end
     end
+    
+    def build_env(*)
+      env = super
+    end
 
-    # Restore any headers set by the remote server's Rack.
-    use SwitchHeaders, /^X-HideRack-/, 'X-Rack-'
-
-    # Rename any headers set by the local client's Rack.
-    use SwitchHeaders, /^X-Rack-/, 'X-Rack-Client-'
-
-    # This is the "meat" of our basic middleware.
-    use Rack::Cache,
-    'rack-cache.ignore_headers' => ['Set-Cookie','X-Content-Digest']
-    use Rack::Head
-    use Rack::ConditionalGet
-    use Rack::ETag
-
-    # Hide any headers set by the remote server's Rack.
-    use SwitchHeaders, /^X-Rack-/, 'X-HideRack-'
+    def http_user_agent
+      "cardiac #{Cardiac::VERSION} (rack-client #{Rack::Client::VERSION})"
+    end
 
     def self.new
       super Rack::Client::Handler::NetHTTP
@@ -46,10 +53,6 @@ module Cardiac
     
     def self.build_mock_response body, code, headers={}
       Rack::Client::Simple::CollapsedResponse.new code, headers, StringIO.new(body)
-    end
-
-    def http_user_agent
-      "cardiac #{Cardiac::VERSION} (rack-client #{Rack::Client::VERSION})"
     end
   end
 end
