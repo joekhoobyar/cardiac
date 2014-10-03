@@ -9,7 +9,7 @@ module Cardiac
   class ResourceAdapter
     include ::ActiveSupport::Callbacks
     include Representation::LookupMethods
-    include ResourceCache
+    include ResourceCache::InstanceMethods
     
     define_callbacks :resolve, :prepare, :encode, :execute, :decode
     

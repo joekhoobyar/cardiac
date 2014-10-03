@@ -4,6 +4,8 @@ require 'active_attr'
 module Cardiac
   module Model
     class Base
+      extend Cardiac::ResourceCache::ClassMethods
+      
       include ActiveAttr::Model
       include Cardiac::Model::Attributes
       include Cardiac::Model::Querying
