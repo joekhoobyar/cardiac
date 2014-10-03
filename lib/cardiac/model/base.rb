@@ -155,7 +155,7 @@ module Cardiac
       end
     end
     
-    ActiveSupport.run_load_hooks(:cardiac, Base)
+    ActiveSupport.run_load_hooks(:cardiac_model, Base)
   end
 
 end

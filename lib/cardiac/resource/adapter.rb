@@ -9,6 +9,7 @@ module Cardiac
   class ResourceAdapter
     include ::ActiveSupport::Callbacks
     include Representation::LookupMethods
+    include ResourceCache
     
     define_callbacks :resolve, :prepare, :encode, :execute, :decode
     
@@ -25,8 +26,6 @@ module Cardiac
     
     def initialize(klass,base,payload=nil)
       @klass               = klass
-      @query_cache         = Hash.new { |h,url| h[url] = {} }
-      @query_cache_enabled = false
       @reflection          = base.to_reflection if base.respond_to? :to_reflection
       resolve! base
     end
@@ -79,35 +78,6 @@ module Cardiac
     def prepared?
       @__client_options__.present?
     end
-
-    # Enable the query cache within the block.
-    def cache
-      old, @query_cache_enabled = @query_cache_enabled, true
-      yield
-    ensure
-      clear_query_cache
-      @query_cache_enabled = old
-    end
-  
-    def enable_query_cache!
-      @query_cache_enabled = true
-    end
-  
-    def disable_query_cache!
-      @query_cache_enabled = false
-    end
-  
-    # Disable the query cache within the block.
-    def uncached
-      old, @query_cache_enabled = @query_cache_enabled, false
-      yield
-    ensure
-      @query_cache_enabled = old
-    end
-  
-    def clear_query_cache
-      @query_cache.clear
-    end
     
   protected
   
@@ -152,13 +122,15 @@ module Cardiac
     
     def execute!
       run_callbacks :execute do
-        clear_query_cache unless request_is_safe?
+        clear_resource_cache unless request_is_safe?
           
-        if @query_cache_enabled && http_method=='GET'
-          url, headers = __client_options__.slice(:url, :headers)
-          self.result = cache_request(url.to_s, headers) { transmit! }
-        else
-          self.result = transmit!
+        instrumenter.instrument "operation.cardiac", event=event_attributes do
+          if resource_cache_enabled? http_verb
+            self.result = cache_request(*__client_options__.slice(:url, :headers)) { transmit! }
+          else
+            self.result = transmit!
+          end
+          event[:response_headers] = result.response.headers if result && result.response
         end
             
         completed?
@@ -188,25 +160,7 @@ module Cardiac
   private
   
     def transmit!
-      event = event_attributes 
-      instrumenter.instrument "operation.cardiac", event do
-        result = __handler__.new(__client_options__, payload, &__client_handler__).transmit!
-        event[:response_headers] = result.response.headers if result && result.response
-        result
-      end
-    end
-
-    def cache_request(url, headers)
-      if @query_cache[url].key?(headers)
-        event = event_attributes('CACHE')
-        instrumenter.instrument "operation.cardiac", event do
-          result = @query_cache[url][headers]
-          event[:response_headers] = result.response.headers if result && result.response
-          result
-        end
-      else
-        @query_cache[url][headers] = yield
-      end
+      __handler__.new(__client_options__, payload, &__client_handler__).transmit!
     end
    
     def model_name

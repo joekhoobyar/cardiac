@@ -74,4 +74,6 @@ module Cardiac
       base.userinfo = base.query = nil
     end
   end
+
+  ActiveSupport.run_load_hooks(:cardiac, Resource)
 end
