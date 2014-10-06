@@ -13,5 +13,6 @@ module Cardiac
     autoload :Persistence
     autoload :Querying
     autoload :Validations
+    autoload :CacheDecoration
   end
 end

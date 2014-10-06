@@ -7,11 +7,11 @@ module Cardiac
   
   # An adapter for performing operations on a resource.
   class ResourceAdapter
-    include ::ActiveSupport::Callbacks
     include Representation::LookupMethods
     include ResourceCache::InstanceMethods
     
-    define_callbacks :resolve, :prepare, :encode, :execute, :decode
+    extend ActiveModel::Callbacks
+    define_model_callbacks :resolve, :prepare, :encode, :execute, :decode
     
     attr_accessor :klass, :resource, :payload, :result
     
@@ -66,7 +66,7 @@ module Cardiac
       resolved? or raise UnresolvableResourceError
       prepared? or prepare! or raise InvalidOperationError
       encode! *arguments
-      execute!
+      execute! &block
     ensure
       decode! if completed?
     end
@@ -120,16 +120,16 @@ module Cardiac
       end
     end
     
-    def execute!
+    def execute! &response_handler
       run_callbacks :execute do
         clear_resource_cache unless request_is_safe?
           
         instrumenter.instrument "operation.cardiac", event=event_attributes do
           if resource_cache_enabled? http_verb
             url, headers = __client_options__.slice(:url, :headers)
-            self.result = cache_resource(url.to_s, headers, event) { transmit! }
+            self.result = cache_resource(url.to_s, headers, event) { transmit!(&response_handler) }
           else
-            self.result = transmit!
+            self.result = transmit!(&response_handler)
           end
           event[:response_headers] = result.response.headers if result && result.response
         end
@@ -160,8 +160,8 @@ module Cardiac
 
   private
   
-    def transmit!
-      __handler__.new(__client_options__, payload, &__client_handler__).transmit!
+    def transmit!(&response_handler)
+      __handler__.new(__client_options__, payload, &response_handler).transmit!
     end
    
     def model_name
@@ -176,20 +176,19 @@ module Cardiac
       h.keep_if{|key,value| key==:verb || key==:url || value.present? }
     end
     
-    def __codecs__
+    def self.__codecs__
       @__codecs__ ||= ::Cardiac::Representation::Codecs
     end
   
-    def __handler__
+    def self.__handler__
       @__handler__ ||= ::Cardiac::OperationHandler
-    end
-    
-    def __client_handler__
     end
     
     def __klass_get method_name
       @klass.public_send(method_name) if @klass && @klass.respond_to?(method_name, false)
     end
+    
+    delegate :__codecs__, :__handler__, to: 'self.class'
   end
 
 end

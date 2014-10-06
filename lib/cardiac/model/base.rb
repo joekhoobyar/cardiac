@@ -15,6 +15,7 @@ module Cardiac
       include Cardiac::Model::Callbacks
       include Cardiac::Model::Declarations
       include Cardiac::Model::Operations
+      include Cardiac::Model::CacheDecoration
       include ActiveSupport::Configurable
       
       # Instances may not explicitly define their own base resource.
