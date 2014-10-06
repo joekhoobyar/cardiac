@@ -95,7 +95,9 @@ module Cardiac
       
         # @see ActiveRecord::Persistence#instantiate
         def instantiate(record, options = {})
-          allocate.init_with options.merge('attributes'=>record).stringify_keys
+          record = allocate.init_with options.merge('attributes'=>record).stringify_keys
+          yield record if block_given?
+          record
         end
         
         # See ActiveRecord::Relation::FinderMethods#raise_record_not_found_exception

@@ -67,9 +67,11 @@ module Cardiac
       resolved.result.payload
     end
   
-    def __adapter__
+    def self.__adapter__
       @__adapter__ ||= ::Cardiac::ResourceAdapter
     end
+    
+    delegate :__adapter__, to: 'self.class'
     
   end
 end
