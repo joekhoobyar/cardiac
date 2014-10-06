@@ -131,7 +131,7 @@ module Cardiac
           else
             self.result = transmit!(&response_handler)
           end
-          event[:response_headers] = result.response.headers if result && result.response
+          event[:result] = response if response
         end
             
         completed?

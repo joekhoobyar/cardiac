@@ -28,6 +28,12 @@ module Cardiac
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",
       "Cardiac::ResourceCache::Middleware"
       
+    initializer 'cardiac.log_subscriber' do |app|
+      ActiveSupport.on_load(:cardiac) do
+        Cardiac::LogSubscriber.verbose = app.config.cardiac.verbose
+      end
+    end
+      
     initializer 'cardiac.build_client_middleware' do |app|
       ActiveSupport.on_load(:cardiac) do
         Cardiac::Client.tap do |client|
@@ -45,9 +51,7 @@ module Cardiac
           # NOTE: Certain headers should ALWAYS be ignored by the client.
           if client_cache = app.config.cardiac.client_cache
             client_cache = {} unless Hash===client_cache
-              
-            client_cache[:verbose] = app.config.cardiac.verbose unless client_cache.key? :verbose
-              
+            client_cache[:verbose] = false unless client_cache.key? :verbose
             client_cache[:ignore_headers] = Array(client_cache[:ignore_headers]) + ['Set-Cookie','X-Content-Digest']
               
             client.use Rack::Cache, Hash[ client_cache.map{|k,v| ["rack-cache.#{k}", v] } ]
