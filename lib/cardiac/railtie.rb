@@ -22,7 +22,7 @@ module Cardiac
     # ---------------------------------------------------------------------------
         
     config.cardiac = ActiveSupport::OrderedOptions.new
-    config.cardiac.client_cache = {}
+    config.cardiac.client_cache = {}.with_indifferent_access
     config.cardiac.verbose = false
       
     config.app_middleware.insert_after "::ActionDispatch::Callbacks",

@@ -16,7 +16,7 @@ module Cardiac
       def call(env)
         @app.call(env)
       ensure
-        if message = env['rack.errors'].to_s.presence
+        if message = env['rack.errors'].string.presence
           Cardiac::Model::Base.logger.error message
         end
       end
