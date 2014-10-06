@@ -5,23 +5,10 @@ module Cardiac
     module CacheDecoration
       extend ActiveSupport::Concern
       
-      included do
-        __operation_proxy__.__adapter__.after_execute <<-EOLCC
-          if lcc = __klass_get :_model_cache_control
-            response = Rack::Cache::Response.new(response.to_a)
-            if response.fresh?
-              lcc[:expires_at] = response.expires || (response.date + response.ttl)
-            else
-              lcc[:expires_at] = Time.now
-            end
-          end
-          true
-        EOLCC
-      end
-      
       module ClassMethods
         
-        attr_reader :_model_cache_control
+        # The callback to be installed on the adapter.
+        MODEL_CACHE_CONTROL_PROC = Proc.new{|adapter| adapter.klass._model_cache_control(adapter.response) }
         
         # Causes all find(..) methods to go through an object-level cache,
         # which is populated on demand whenever it is needed.
@@ -30,8 +17,20 @@ module Cardiac
         def cache_all! options={}
           if options
             @_model_cache_control = (Hash===options ? options : {}).update(expires_at: Time.now)
+            __operation_proxy__.__adapter__.after_execute MODEL_CACHE_CONTROL_PROC
           else
             @model_cache = @_model_cache_control = nil
+            __operation_proxy__.__adapter__.skip_callback :execute, :after,  MODEL_CACHE_CONTROL_PROC
+          end
+        end
+        
+        # Internal method that controls the model cache, using the given response object.
+        def _model_cache_control(response)
+          response = Rack::Cache::Response.new(*response.to_a)
+          if response.fresh?
+            @_model_cache_control[:expires_at] = response.expires || (response.date + response.ttl)
+          else
+            @_model_cache_control[:expires_at] = Time.now
           end
         end
     
