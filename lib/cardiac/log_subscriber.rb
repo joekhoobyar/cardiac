@@ -1,6 +1,8 @@
 module Cardiac
   
   class LogSubscriber < ActiveSupport::LogSubscriber
+    class_attribute :verbose
+    self.verbose = false
     
     delegate :logger, to: '::Cardiac::Model::Base'
 
@@ -13,17 +15,28 @@ module Cardiac
       return unless logger.debug?
 
       payload   = event.payload
-      name, url = payload[:name], payload[:url]
+      name, url, verb, result = *payload.values_at(:name, :url, :verb, :result)
+      
+      cache_trace = result.headers['X-Rack-Client-Cache'] if result
         
       stats = "#{event.duration.round(1)}ms"
-      stats = "CACHED #{stats}" if name!='CACHE' && /fresh/ === payload[:response_headers].try(:[],'X-Rack-Client-Cache')
-      name  = "#{name} #{payload[:verb]} (#{stats})"
-
-      if extra = payload.except(:name, :verb, :url, :response_headers).presence
-        extra = "  " + extra.map{|key,value|
+      stats = "CACHED #{stats}" if cache_trace && name!='CACHE' && /fresh/ === cache_trace
+      name  = "#{name} #{verb} (#{stats})"
+      
+      if extra = payload.except(:name, :verb, :url, :result).presence
+        extra = extra.map{|key,value|
                    key = key.to_s.underscore.upcase
-                   "#{key}: #{key=='PAYLOAD' ? value : value.inspect}"
-                 }.join(",\n\t +")
+                   "\n\t +#{key}: #{key=='PAYLOAD' ? value : value.inspect}"
+                 }
+      end
+      
+      if verbose && result
+        verbosity = Hash===verbose ? verbose : {status: true, cache: true, headers: false, body: false}
+        extra ||= []
+        extra.unshift "\n\t +BODY: #{body.inspect}" if verbosity[:body]
+        extra.unshift "\n\t +HEADERS: #{headers.inspect}" if verbosity[:headers]
+        extra.unshift "CACHE: #{cache_trace}" if verbosity[:cache]
+        extra.unshift result.status if verbosity[:status]
       end
 
       if odd?
@@ -33,7 +46,7 @@ module Cardiac
         name = color(name, MAGENTA, true)
       end
 
-      debug "  #{name}  #{url}#{extra}"
+      debug "  #{name}  #{url}#{'  ['+extra.join('; ')+']' if extra}"
     end
 
     def identity(event)
