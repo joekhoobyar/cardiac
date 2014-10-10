@@ -52,7 +52,14 @@ module Cardiac
     end
     
     def self.build_mock_response body, code, headers={}
-      Rack::Client::Simple::CollapsedResponse.new code, headers, StringIO.new(body)
+      case body
+      when Exception
+        body = StringIO.new([body.to_s].concat(body.backtrace).join("\n\t"))
+      else
+        body = StringIO.new(body.to_s)
+      end
+      headers['Status'] ||= code.to_s
+      Rack::Client::Simple::CollapsedResponse.new code, headers, body
     end
   end
 end
