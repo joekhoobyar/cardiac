@@ -63,6 +63,12 @@ module Cardiac
         (delim && values) ? values.join(delim) : values
       end
       
+      # Overridden to convert empty strings to nil before typecasting.
+      def typecast_attribute(typecaster, value)
+        value = nil if value.acts_like?(:string) && value.empty?
+        super(typecaster, value)
+      end
+      
     protected
 
       # Stores the attributes returned by the remote, after performing any unpacking/decoding.

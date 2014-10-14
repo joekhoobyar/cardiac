@@ -19,9 +19,12 @@ module Cardiac
   # Thrown when a request has failed, due to a non-2xx status code.
   class RequestFailedError < ResourceError
     attr_reader :response
+    
+    delegate :status, :body, :headers, to: :response, allow_nil: true, prefix: false
+    
     def initialize(response,message=nil)
       @response = response
-      super(message || Rack::Utils::HTTP_STATUS_CODES[@response.status])
+      super(message || "#{status} #{Rack::Utils::HTTP_STATUS_CODES[status]}")
     end
   end
   
