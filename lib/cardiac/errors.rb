@@ -24,7 +24,7 @@ module Cardiac
     
     def initialize(response,message=nil)
       @response = response
-      super(message || Rack::Utils::HTTP_STATUS_CODES[status])
+      super(message || "#{status} #{Rack::Utils::HTTP_STATUS_CODES[status]}")
     end
   end
   
