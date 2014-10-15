@@ -126,26 +126,30 @@ module Cardiac
       
       # Filters the primary keys and readonly attributes from the attribute names.
       def attributes_for_update(attribute_names)
-        attributes.slice(*attribute_names).except(*(readonly_attributes+key_attributes))
+        serializable_hash(only: attribute_names.reject{|name| readonly_attribute?(name) || key_attribute?(name) })
       end
   
       # Filters out the primary keys, from the attribute names, when the primary
       # key is to be generated (e.g. the id attribute has no value).
       def attributes_for_create(attribute_names)
-        attributes.slice(*attribute_names).except(*key_attributes.reject{|k| query_attribute(k) })
+        serializable_hash(only: attribute_names.reject{|name| key_attribute?(name) && ! query_attribute(name) })
       end
   
       def readonly_attribute?(name)
-        self.class.readonly_attributes.include?(name)
+        self.class.readonly_attributes.include?(name.to_s)
       end
   
       def key_attribute?(name)
-        self.class.key_attributes.include?(name)
+        self.class.key_attributes.include?(name.to_s)
       end
   
-      # No seralized attribute support yet.
-      def serialized_attribute_value(name)
-        read_attribute(name)
+      def read_attribute_for_serialization(name)
+        case value = read_attribute(name)
+        when Array
+          value.map{|item| item.respond_to?(:serializable_hash) ? item.serializable_hash : item }
+        else
+          value.respond_to?(:serializable_hash) ? value.serializable_hash : value
+        end
       end
     end
   end

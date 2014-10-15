@@ -8,15 +8,15 @@ describe Cardiac::Model::Base do
     Class.new(Cardiac::Model::Base).class_eval do
       self.base_resource = 'http://localhost/dummy'
       
-      attribute :id,   type: Integer
-      attribute :name, type: String
+      attribute :id,     type: Integer
+      attribute :name,   type: String
       
       def self.name; 'Dummy' end
       
       self
     end
   end
-  
+   
   subject { klass }
     
   describe '#base_resource' do
@@ -442,5 +442,6 @@ describe Cardiac::Model::Base do
     end
     
     it_behaves_like 'read-only models prohibit modification'
-  end  
+  end
+  
 end
