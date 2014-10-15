@@ -161,7 +161,9 @@ module Cardiac
   private
   
     def transmit!(&response_handler)
-      __handler__.new(__client_options__, payload, &response_handler).transmit!
+      handler = __handler__.new __client_options__, payload, &response_handler
+      handler.config.update(resource.send(:build_config))
+      handler.transmit!
     end
    
     def model_name

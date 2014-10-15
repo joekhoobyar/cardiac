@@ -20,6 +20,9 @@ module Cardiac
       
       config_accessor :unwrap_client_exceptions
       self.unwrap_client_exceptions = Cardiac::OperationHandler.unwrap_client_exceptions
+      
+      config_accessor :mock_response_on_connection_error
+      self.mock_response_on_connection_error = Cardiac::OperationHandler.mock_response_on_connection_error
     end
     
     def reconfig

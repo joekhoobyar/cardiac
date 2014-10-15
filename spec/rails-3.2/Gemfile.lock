@@ -1,7 +1,7 @@
 PATH
   remote: ../..
   specs:
-    cardiac (0.2.0.pre5)
+    cardiac (0.2.0.pre6)
       active_attr (>= 0.8.2)
       activemodel (>= 3.2, < 4.1)
       activesupport (>= 3.2, < 4.1)

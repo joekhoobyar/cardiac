@@ -8,6 +8,11 @@ module Cardiac
   class Client < Rack::Client::Simple
     
     # :nodoc:
+    class MockBody < ::StringIO
+      delegate :empty?, :present?, :blank?, to: :string
+    end
+    
+    # :nodoc:
     class ErrorLogger
       def initialize(app)
         @app = app
@@ -54,9 +59,9 @@ module Cardiac
     def self.build_mock_response body, code, headers={}
       case body
       when Exception
-        body = StringIO.new([body.to_s].concat(body.backtrace).join("\n\t"))
+        body = MockBody.new([body.to_s].concat(body.backtrace).join("\n\t"))
       else
-        body = StringIO.new(body.to_s)
+        body = MockBody.new(body.to_s)
       end
       headers['Status'] ||= code.to_s
       Rack::Client::Simple::CollapsedResponse.new code, headers, body
