@@ -9,7 +9,6 @@ module CardiacTest
     config.encoding = "utf-8"
     config.cache_classes = true
     config.consider_all_requests_local       = true
-    
     config.root = File.expand_path('../..', __FILE__)
     
     config.active_support.deprecation = :stderr
@@ -23,6 +22,11 @@ module CardiacTest
     config.eager_load = false      if config.respond_to?(:eager_load)
     config.assets.enabled = false
     config.assets.version = '1.0'
+    
+    FactoryGirl.definition_file_paths = [
+      Rails.root.join('..','..','shared','factories')
+    ]
+    config.after_initialize { FactoryGirl.find_definitions }
     
   end
 end

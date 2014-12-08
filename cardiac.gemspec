@@ -33,6 +33,8 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec',       '~> 3.0', '< 3.1'
   s.add_development_dependency 'rspec-rails', '~> 3.0', '< 3.1'
   s.add_development_dependency 'rspec-collection_matchers', '~> 1.0'
+  s.add_development_dependency 'factory_girl', '~> 4.4'
+  s.add_development_dependency 'fakeweb'
   
   s.add_runtime_dependency "rack",          '>= 1.4.5'
   s.add_runtime_dependency "rack-cache",    '~> 1.2'

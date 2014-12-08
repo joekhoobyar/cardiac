@@ -1,5 +1,6 @@
 require 'active_support/core_ext/module/delegation'
 require 'factory_girl'
+require 'fake_web'
 
 # Adapted from factory_girl_remote_strategy
 #

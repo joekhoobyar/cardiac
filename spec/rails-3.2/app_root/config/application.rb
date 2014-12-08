@@ -25,5 +25,10 @@ module CardiacTest
     config.assets.enabled = false
     config.assets.version = '1.0'
     
+    FactoryGirl.definition_file_paths = [
+      Rails.root.join('..','..','shared','factories')
+    ]
+    config.after_initialize { FactoryGirl.find_definitions }
+    
   end
 end

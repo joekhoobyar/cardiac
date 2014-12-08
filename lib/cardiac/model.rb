@@ -14,5 +14,10 @@ module Cardiac
     autoload :Querying
     autoload :Validations
     autoload :CacheDecoration
+    
+    autoload_at 'cardiac/model/factory_girl' do
+      autoload :FactoryGirlRemoteStrategy
+      autoload :FactoryGirlRemoteNotFoundStrategy
+    end
   end
 end
