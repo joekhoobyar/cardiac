@@ -9,7 +9,7 @@ module Cardiac
   module Model
     class FactoryGirlRemoteStrategy
       def initialize
-        @strategy = FactoryGirl.strategy_by_name(:build).new
+        @strategy = FactoryGirl.strategy_by_name(:build_stubbed).new
       end
 
       delegate :association, to: :@strategy

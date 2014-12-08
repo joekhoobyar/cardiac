@@ -2,13 +2,27 @@ require "spec_helper"
 
 describe Cardiac::Model::FactoryGirlRemoteStrategy do
   
-  describe "basic usage" do
-    it "builds instance and registers get url with FakeWeb" do
-      FactoryGirl.remote(:widget, id: 1)
-      expect { Widget.find(1) }.not_to raise_error
-      widget = Widget.find(1)
-      widget.should be_kind_of Widget
+  describe "building an existing instance" do
+    let!(:widget) { FactoryGirl.remote(:widget, id: 1) }
+      
+    subject { widget }
+    
+    it { is_expected.to be_kind_of(Widget) }
+    it { is_expected.to be_persisted }
+    it { is_expected.not_to be_new_record }
+      
+    describe 'registering an URL with FakeWeb' do
+      subject { Widget.find(1) }
+
+      it 'does not raise an error' do
+        expect { subject }.not_to raise_error
+      end
+    
+      it { is_expected.to be_kind_of(Widget) }
+      it { is_expected.to be_persisted }
+      it { is_expected.not_to be_new_record }
     end
+    
   end
 
 end
