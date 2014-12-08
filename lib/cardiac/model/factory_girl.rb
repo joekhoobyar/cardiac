@@ -18,14 +18,14 @@ module Cardiac
         @strategy.result(evaluation).tap do |model|
           FakeWeb.register_uri(:get, resource_url(model), body: resource_payload(model), content_type: 'application/json')
           FakeWeb.register_uri(:put, resource_url(model), body: resource_payload(model), content_type: 'application/json')
-          evaluation.notify(:after_remote, e) # runs after(:remote) callback
+          evaluation.notify(:after_remote, model) # runs after(:remote) callback
         end
       end
       
     private
     
       def resource_url(model)
-        model.class.identify(model).to_url
+        model.class.identify(model).to_resource.to_url
       end
     
       def resource_payload(model)
