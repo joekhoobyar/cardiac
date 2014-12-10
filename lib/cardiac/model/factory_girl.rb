@@ -29,6 +29,7 @@ module Cardiac
       end
     
       def resource_payload(model)
+        raise ArgumentError, "#{model.class.name} is not a descendant of Cardiac::Model::Base" unless Cardiac::Model::Base === model
         model.serializable_hash.to_json
       end
     end
