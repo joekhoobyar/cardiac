@@ -22,10 +22,12 @@ module Cardiac
         
         ##
         # :method: identify
+        #
         # This member identifies a singular subresource by converting the given argument
-        # to a parameter and appending it to the path.
+        # to a parameter and appending it to the path.  Parameters are properly CGI escaped.
+        #
         # This member is used by all query/persistence methods that operate on existing records.
-        subresource :identify,         lambda{|id_or_model|   path(id_or_model.to_param) } do
+        subresource :identify,         lambda{|id_or_model|   path(Array(id_or_model).map{|v| CGI.escape(v.to_param)}.to_param) } do
           
           ##
           # :method: update_instance

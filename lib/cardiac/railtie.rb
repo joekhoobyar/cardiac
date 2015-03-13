@@ -80,6 +80,16 @@ module Cardiac
         self.logger ||= ::Rails.logger
       end
     end
+    
+    # Rails 4.2+, or when the GlobalID gem is explicitly loaded.
+    initializer 'cardiac_model.global_id' do
+      ActiveSupport.on_load(:cardiac_model) do
+        if defined? ::GlobalID
+          require 'global_id/identification'
+          send :include, ::GlobalID::Identification
+        end
+      end
+    end
 
     # Make sure that the model layer is already available when running a script.
     runner do

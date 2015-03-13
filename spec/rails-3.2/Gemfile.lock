@@ -1,17 +1,17 @@
 PATH
   remote: ../..
   specs:
-    cardiac (0.2.0.pre6)
-      active_attr (>= 0.8.2)
-      activemodel (>= 3.2, < 4.1)
-      activesupport (>= 3.2, < 4.1)
+    cardiac (0.2.0.pre9)
+      active_attr (~> 0.8, >= 0.8.2)
+      activemodel (>= 3.2, < 5.0)
+      activesupport (>= 3.2, < 5.0)
       i18n (~> 0.6, >= 0.6.4)
-      json (> 1.8.0)
-      mime-types (> 1.1)
+      json (~> 1.8, > 1.8.0)
+      mime-types (~> 1.1, > 1.1)
       multi_json (~> 1.0)
-      rack (>= 1.4.5)
+      rack (~> 1.4, >= 1.4.5)
       rack-cache (~> 1.2)
-      rack-client (~> 0.4.2)
+      rack-client (~> 0.4, >= 0.4.2)
 
 GEM
   remote: http://rubygems.org/
@@ -29,9 +29,9 @@ GEM
       rack-cache (~> 1.2)
       rack-test (~> 0.6.1)
       sprockets (~> 2.2.1)
-    active_attr (0.8.4)
-      activemodel (>= 3.0.2, < 4.2)
-      activesupport (>= 3.0.2, < 4.2)
+    active_attr (0.8.5)
+      activemodel (>= 3.0.2, < 5.0)
+      activesupport (>= 3.0.2, < 5.0)
     activemodel (3.2.19)
       activesupport (= 3.2.19)
       builder (~> 3.0.0)

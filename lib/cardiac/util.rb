@@ -28,12 +28,13 @@ module Cardiac
   # Base proxy class.
   #
   # On Ruby 2.0 and above, we can use ActiveSupport's ProxyObject, otherwise we must use BlankSlate.
-  class Proxy < (RUBY_VERSION>='2.0' && defined?(::ActiveSupport::ProxyObject) ? ::ActiveSupport::ProxyObject : ::BlankSlate)
+  class Proxy < (::RUBY_VERSION>='2.0' && defined?(::ActiveSupport::ProxyObject) ? ::ActiveSupport::ProxyObject : ::BlankSlate)
     
     # We at least would like some basics here.
-    %w(kind_of? is_a? inspect class method send).each do |k|
+    %w(kind_of? is_a? inspect class method send Array).each do |k|
       define_method k, ::Kernel.instance_method(k)
     end
+    define_method :Hash, ::Kernel.instance_method(:Hash) if ::RUBY_VERSION>='2.0'
     %w(class extend send object_id public_send).each do |k|
       define_method :"__#{k}__", ::Kernel.instance_method(k)
     end
