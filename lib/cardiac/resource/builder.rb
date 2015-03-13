@@ -1,3 +1,5 @@
+require 'delegate'
+
 module Cardiac
   class ResourceBuilder < Proxy
     
@@ -6,6 +8,8 @@ module Cardiac
       @base, @extensions, @extension_block = base, extensions, extension_block
       @extensions.compact!
     end
+    
+    delegate :to_url, :to_uri, :to_relative_uri, :to_relative_url, to: :__subresource__
 
     # Returns a copy of our subresource.
     def to_resource
