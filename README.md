@@ -1,4 +1,4 @@
-= cardiac
+# cardiac
 
 Cardiac - a REST modeling framework for Ruby
 
@@ -9,27 +9,27 @@ This gem provides a thin facade around REST-ful resources, aiming to be closer t
 
 TODO: More description is definitely needed.
 
-== Development Status
+## Development Status
 
 It is in active development and already being used in multiple production systems.
 
 The short-term roadmap will include:
 
-- Refactoring (and possibly spinning off features into subprojects)
-- Merging in features from an alternate implementation (supporting more HTTP features)
-- Integrating with and contributing to other projects (better support for REST-ful architectures)
+* Refactoring (and possibly spinning off features into subprojects)
+* Merging in features from an alternate implementation (supporting more HTTP features)
+* Integrating with and contributing to other projects (better support for REST-ful architectures)
 
-== Compatibility
+## Compatibility
 
-- Tested with rails 3.2 and 4.0
-- Tested with ruby 1.9.3 and 2.0.0
+* Tested with rails 3.2 and 4.0
+* Tested with ruby 1.9.3 and 2.0.0
 
-== Contributors
+## Contributors
 
-- Joe Khoobyar             http://github.com/joekhoobyar
-- Gannett Company, Inc.    http://www.gannett.com/
+* Joe Khoobyar             http://github.com/joekhoobyar
+* Gannett Company, Inc.    http://www.gannett.com/
 
 
-== Copyright
+## Copyright
 
 Copyright (c) 2013-2014 Joe Khoobyar. See LICENSE for details.
