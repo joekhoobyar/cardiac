@@ -4,6 +4,9 @@ Cardiac - a REST modeling framework for Ruby
 
 This gem provides a thin facade around REST-ful resources, aiming to be closer to ActiveRecord than ActiveResource.
 
+[![Build Status](https://travis-ci.org/joekhoobyar/cardiac.svg)](https://travis-ci.org/joekhoobyar/cardiac)
+[![Code Climate](https://codeclimate.com/github/joekhoobyar/cardiac/badges/gpa.svg)](https://codeclimate.com/github/joekhoobyar/cardiac)
+
 TODO: More description is definitely needed.
 
 == Development Status
