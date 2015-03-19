@@ -2,5 +2,8 @@ language: ruby
 rvm:
   - "1.9.3"
   - "2.0.0"
-# uncomment this line if your project needs to run something other than `rake`:
-# script: bundle exec rspec spec
+install: rake all:bundle:install
+script: rake all:spec
+addons:
+  code_climate:
+    repo_token: de387f19a02a676eac0a5895bc3186eac52e69d7903633a5f22c7151323d0298
