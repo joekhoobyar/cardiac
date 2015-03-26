@@ -79,7 +79,10 @@ module Cardiac
         # Overridden to ensure that the resource is first extended with persistence operations.
         def resource_with_extensions base=nil, &declaration
           self.base_resource = base if base.present?
-          resource_without_extensions base_resource, &declaration
+          resource_without_extensions base_resource do
+            instance_eval(&RESOURCE_EXTENSION_BLOCK)
+            instance_eval(&declaration)
+          end
         end
       
       private

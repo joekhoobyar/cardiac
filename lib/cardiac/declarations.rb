@@ -8,7 +8,7 @@ module Cardiac
       when ::URI, ::String
         builder = ::Cardiac::Resource.new(base)
       else
-        raise ArgumentError, 'a base URI or Resource must be provided'
+        raise ::ArgumentError, 'a base URI or Resource must be provided'
       end
       super builder, extension_module
     end
@@ -16,9 +16,11 @@ module Cardiac
     # Overridden to return an extended resource/subresource,
     # but skip building the extension module if no block is given.
     def extension_exec(*args, &block)
-      builder = super(*args, &block)
-      builder.extending(__extension_module__) if block
-      builder
+      if block
+        super(*args, &block)
+        @builder.extending(__extension_module__)
+      end
+      @builder
     end
   end
 
