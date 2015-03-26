@@ -3,12 +3,6 @@ module Cardiac
   # If a subresource has any path or query values, it will treat the base resource's path
   # as being a *directory*.  
   class Subresource < Resource
-
-		begin
-			remove_method :subresource, :subresources_values
-			private :subresources_values=
-		rescue
-		end
     
     def initialize(base)
       @_base_resource = base
@@ -64,10 +58,6 @@ module Cardiac
       @__parent_module__ ||= Module.new.tap{|x| @_base_resource.build_extensions_for_module x }
     end
     
-    def build_subresources_for_module mod
-      raise NotImplementedError
-    end
-
 		def build_encoder(*previous)
 			result = @_base_resource.send :build_encoder, *previous
 			result[0] = encoder_search_value || result[0]
@@ -78,10 +68,8 @@ module Cardiac
   
     # Overridden to omit any subresources.    
     def apply_extensions_to_module! mod=Module.new
-      mod.send :include, build_parent_module
-      build_extensions_for_module mod
-      build_operations_for_module mod
-      mod
+      mod.send :include, __parent_module__
+      super mod
     end
       
   end
