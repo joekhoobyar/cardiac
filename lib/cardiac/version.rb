@@ -1,3 +1,3 @@
 module Cardiac
-  VERSION = '0.2.0.pre9'
+  VERSION = '0.2.0'
 end
