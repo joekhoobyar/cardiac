@@ -14,9 +14,7 @@ describe Cardiac::DeclarationMethods do
   end
   
   shared_examples 'a resource declaration' do |base,mock|
-    if mock.present?
-      let(:extensions) { send(:"#{mock}_extensions") }
-    end
+    let(:extensions) { send(:"#{mock}_extensions") if mock.present? }
       
     subject { target.resource(base, &extensions) }
 
@@ -30,22 +28,45 @@ describe Cardiac::DeclarationMethods do
   describe '#resource()' do
     let(:default_headers) { {:accepts => Cardiac::RequestMethods::DEFAULT_ACCEPTS } } 
       
-    it_behaves_like 'a resource declaration', 'http://localhost/', :foobar do
-      describe '#to_url' do
-        subject { super().to_url }
-        it { is_expected.to eq('https://localhost/foo/bar') }
+    context 'without extensions' do
+      it_behaves_like 'a resource declaration', 'http://localhost/' do
+        describe '#to_url' do
+          subject { super().to_url }
+          it { is_expected.to eq('http://localhost/') }
+        end
+  
+        describe '#build_headers' do
+          subject { super().send(:build_headers) }
+          it { is_expected.to eq(default_headers) }
+        end
+          
+        it { is_expected.not_to respond_to(:foobar) }
+          
+        describe '#__extension_module__' do
+          subject { super().__extension_module__ }
+          it { is_expected.to be_nil }
+        end
       end
-
-      describe '#build_headers' do
-        subject { super().send(:build_headers) }
-        it { is_expected.to eq(default_headers.merge(:content_type => 'application/octet-stream')) }
-      end
-        
-      it { is_expected.not_to respond_to(:foobar) }
-        
-      describe '#__extension_module__' do
-        subject { super().__extension_module__ }
-        it { is_expected.to be_method_defined(:foobar) }
+    end
+      
+    context 'with extensions' do
+      it_behaves_like 'a resource declaration', 'http://localhost/', :foobar do
+        describe '#to_url' do
+          subject { super().to_url }
+          it { is_expected.to eq('https://localhost/foo/bar') }
+        end
+  
+        describe '#build_headers' do
+          subject { super().send(:build_headers) }
+          it { is_expected.to eq(default_headers.merge(:content_type => 'application/octet-stream')) }
+        end
+          
+        it { is_expected.not_to respond_to(:foobar) }
+          
+        describe '#__extension_module__' do
+          subject { super().__extension_module__ }
+          it { is_expected.to be_method_defined(:foobar) }
+        end
       end
     end
   end
